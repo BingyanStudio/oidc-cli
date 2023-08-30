@@ -1,4 +1,4 @@
-module github.com/BingyanStudio/bingyan-oidc-cli
+module github.com/BingyanStudio/oidc-cli
 
 go 1.20
 
