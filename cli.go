@@ -1,4 +1,4 @@
-package byoidccli
+package oidc_cli
 
 import (
 	"context"
@@ -8,11 +8,19 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	ScopeProfile       = "profile"
+	ScopePhone         = "phone"
+	ScopeEmail         = "email"
+	ScopeStudentNumber = "student_number"
+)
+
 type Config struct {
 	OidcProviderURL string
 	ClientID        string
 	ClientSecret    string
 	RedirectURL     string
+	Scopes          []string
 }
 
 type ResponseTokens struct {
@@ -62,6 +70,10 @@ func Callback(conf Config, code string) (*ResponseTokens, error) {
 	if len(conf.OidcProviderURL) == 0 {
 		conf.OidcProviderURL = "https://api.bingyan.net/sso/oidc"
 	}
+	if conf.Scopes == nil {
+		conf.Scopes = []string{oidc.ScopeOpenID, ScopeProfile, ScopePhone, ScopeEmail}
+	}
+	
 	provider, err := oidc.NewProvider(context.Background(), conf.OidcProviderURL)
 	if err != nil {
 		return nil, err
@@ -72,7 +84,7 @@ func Callback(conf Config, code string) (*ResponseTokens, error) {
 		ClientSecret: conf.ClientSecret,
 		Endpoint:     provider.Endpoint(),
 		RedirectURL:  conf.RedirectURL,
-		Scopes:       []string{oidc.ScopeOpenID, "profile"},
+		Scopes:       conf.Scopes,
 	}
 
 	token, err := oauth2Config.Exchange(context.Background(), code)
