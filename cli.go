@@ -20,6 +20,8 @@ type ResponseTokens struct {
 	IDToken      string `json:"id_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 
+	Claims IDTokenClaims `json:"claims,omitempty"`
+
 	TokenType string `json:"token_type,omitempty"`
 	ExpiresAt int64  `json:"expires_at,omitempty"`
 	Scope     string `json:"scope,omitempty"`
@@ -102,5 +104,6 @@ func Callback(conf Config, code string) (*ResponseTokens, error) {
 		Scope:        token.Extra("scope").(string),
 		ExpiresAt:    claims.ExpiresAt,
 		RefreshToken: token.RefreshToken,
+		Claims:       claims,
 	}, nil
 }
