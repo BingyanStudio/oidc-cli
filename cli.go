@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	ScopeProfile       = "profile"
-	ScopePhone         = "phone"
-	ScopeEmail         = "email"
-	ScopeStudentNumber = "student_number"
+	ScopeProfile = "profile"
+	ScopePhone   = "phone"
+	ScopeEmail   = "email"
 )
 
 type Config struct {
@@ -59,11 +58,11 @@ type UserinfoClaims struct {
 	Picture  string `json:"picture,omitempty"`
 	Gender   string `json:"gender,omitempty"`
 
-	SchoolNumber  string `json:"school_number,omitempty"`
 	Email         string `json:"email,omitempty"`
 	EmailVerified bool   `json:"email_verified,omitempty"`
 	Phone         string `json:"phone,omitempty"`
 	PhoneVerified bool   `json:"phone_verified,omitempty"`
+	Group         string `json:"group,omitempty"`
 }
 
 func Callback(conf Config, code string) (*ResponseTokens, error) {
@@ -73,7 +72,7 @@ func Callback(conf Config, code string) (*ResponseTokens, error) {
 	if conf.Scopes == nil {
 		conf.Scopes = []string{oidc.ScopeOpenID, ScopeProfile, ScopePhone, ScopeEmail}
 	}
-	
+
 	provider, err := oidc.NewProvider(context.Background(), conf.OidcProviderURL)
 	if err != nil {
 		return nil, err
