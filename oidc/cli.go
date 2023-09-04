@@ -1,4 +1,4 @@
-package oidc_cli
+package oidc
 
 import (
 	"context"

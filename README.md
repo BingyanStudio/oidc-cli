@@ -6,10 +6,10 @@
 
 ```go
 import(
-    "github.com/BingyanStudio/oidc-cli"
+    "github.com/BingyanStudio/oidc-cli/oidc"
 )
 
-var oidcConfig = oidc_cli.Config{
+var oidcConfig = oidc.Config{
     ClientID:     "xxxx-xx-xxxxxxx-xxxx",
     ClientSecret: "xxxxxxxxx",
     RedirectURL:  "http://example-client.com/callback",
@@ -17,7 +17,7 @@ var oidcConfig = oidc_cli.Config{
 
 func OidcCallbackHandler(c echo.Context) error {
     code := c.QueryParam("code")
-    callbackRes, err := oidc_cli.Callback(oidcConfig, code)
+    callbackRes, err := oidc.Callback(oidcConfig, code)
     if err != nil {
         ...
     }
