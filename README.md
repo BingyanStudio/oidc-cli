@@ -4,6 +4,8 @@
 
 ## Usage
 
+在某个神秘的地方注册好 Client，配置 redirect url 并获取 id 和 secret
+
 ```go
 import(
     "github.com/BingyanStudio/oidc-cli/oidc"
