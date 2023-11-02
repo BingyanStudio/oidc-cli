@@ -1,5 +1,7 @@
 # 运行
 
+注册 Client 并替换 `CLIENT_ID` 与 `CLIENT_SECRET`
+
 - backend
 
 ```
@@ -11,6 +13,6 @@ go run app.go
 
 ```
 npm install
-npm
+npm start
 ```
 
