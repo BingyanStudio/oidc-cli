@@ -8,11 +8,9 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const (
-	ScopeProfile = "profile"
-	ScopePhone   = "phone"
-	ScopeEmail   = "email"
-)
+type Client struct {
+	Config
+}
 
 type Config struct {
 	OidcProviderURL string
@@ -22,16 +20,25 @@ type Config struct {
 	Scopes          []string
 }
 
+const (
+	ScopeProfile = "profile"
+	ScopePhone   = "phone"
+	ScopeEmail   = "email"
+)
+
 type ResponseTokens struct {
-	AccessToken  string `json:"access_token,omitempty"`
-	IDToken      string `json:"id_token,omitempty"`
+	AccessToken string `json:"access_token,omitempty"`
+
+	IDToken       string        `json:"id_token,omitempty"`
+	IDTokenClaims IDTokenClaims `json:"id_token_claims,omitempty"` // useful info contained in the id token
+
 	RefreshToken string `json:"refresh_token,omitempty"`
 
-	Claims IDTokenClaims `json:"claims,omitempty"` // useful info contained in the id token
+	Scope string `json:"scope,omitempty"`
+
+	ExpiresAt int64 `json:"expires_at,omitempty"`
 
 	TokenType string `json:"token_type,omitempty"`
-	ExpiresAt int64  `json:"expires_at,omitempty"`
-	Scope     string `json:"scope,omitempty"`
 }
 
 type IDTokenClaims struct {
@@ -62,28 +69,32 @@ type UserinfoClaims struct {
 	EmailVerified bool   `json:"email_verified,omitempty"`
 	Phone         string `json:"phone,omitempty"`
 	PhoneVerified bool   `json:"phone_verified,omitempty"`
-	Group         string `json:"group,omitempty"`
+
+	Group string `json:"group,omitempty"`
 }
 
-func Callback(conf Config, code string) (*ResponseTokens, error) {
+func NewClient(conf *Config) Client {
 	if len(conf.OidcProviderURL) == 0 {
 		conf.OidcProviderURL = "https://api.bingyan.net/sso/oidc"
 	}
 	if conf.Scopes == nil {
 		conf.Scopes = []string{oidc.ScopeOpenID, ScopeProfile, ScopePhone, ScopeEmail}
 	}
+	return Client{*conf}
+}
 
-	provider, err := oidc.NewProvider(context.Background(), conf.OidcProviderURL)
+func (cli *Client) RetrieveTokens(code string) (*ResponseTokens, error) {
+	provider, err := oidc.NewProvider(context.Background(), cli.OidcProviderURL)
 	if err != nil {
 		return nil, err
 	}
 
 	oauth2Config := &oauth2.Config{
-		ClientID:     conf.ClientID,
-		ClientSecret: conf.ClientSecret,
+		ClientID:     cli.ClientID,
+		ClientSecret: cli.ClientSecret,
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  conf.RedirectURL,
-		Scopes:       conf.Scopes,
+		RedirectURL:  cli.RedirectURL,
+		Scopes:       cli.Scopes,
 	}
 
 	token, err := oauth2Config.Exchange(context.Background(), code)
@@ -96,7 +107,7 @@ func Callback(conf Config, code string) (*ResponseTokens, error) {
 		return nil, fmt.Errorf("no id_token found")
 	}
 
-	verifier := provider.Verifier(&oidc.Config{ClientID: conf.ClientID})
+	verifier := provider.Verifier(&oidc.Config{ClientID: cli.ClientID})
 	idToken, err := verifier.Verify(context.Background(), rawIDToken)
 	if err != nil {
 		return nil, err
@@ -109,12 +120,12 @@ func Callback(conf Config, code string) (*ResponseTokens, error) {
 	}
 
 	return &ResponseTokens{
-		AccessToken:  token.AccessToken,
-		TokenType:    token.TokenType,
-		IDToken:      rawIDToken,
-		Scope:        token.Extra("scope").(string),
-		ExpiresAt:    claims.ExpiresAt,
-		RefreshToken: token.RefreshToken,
-		Claims:       claims,
+		AccessToken:   token.AccessToken,
+		TokenType:     token.TokenType,
+		IDToken:       rawIDToken,
+		Scope:         token.Extra("scope").(string),
+		ExpiresAt:     claims.ExpiresAt,
+		RefreshToken:  token.RefreshToken,
+		IDTokenClaims: claims,
 	}, nil
 }
